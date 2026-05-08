@@ -93,7 +93,7 @@ export function generateDashboardHtml(stats: ChannelStats): string {
 </head>
 <body>
   <div class="header">
-    <h1>📊 YouTubeチャンネルレポート</h1>
+    <h1>三川燃料店 YouTube レポート</h1>
     <div class="date">${today()}</div>
   </div>
   <div class="channel-name">📺 ${stats.title}</div>
