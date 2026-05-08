@@ -4,6 +4,6 @@ export const settings = {
     height: 630,
   },
   dashboard: {
-    title: "YouTubeチャンネルレポート",
+    title: "乾太くん検証チャンネル 📊 日次レポート",
   },
 };
