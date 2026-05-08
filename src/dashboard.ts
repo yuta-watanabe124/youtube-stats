@@ -23,7 +23,7 @@ export function generateDashboardHtml(stats: ChannelStats): string {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      background: linear-gradient(135deg, #4a0000 0%, #8b0000 50%, #c0392b 100%);
       color: #fff;
       width: 1200px;
       height: 630px;
