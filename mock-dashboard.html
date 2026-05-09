@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>三川燃料店 YouTube レポート</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
+      background: #0a0e1a;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .page {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 16px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .header h1 {
+      font-size: clamp(18px, 4vw, 28px);
+      font-weight: 800;
+      background: linear-gradient(90deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .header .channel {
+      font-size: clamp(12px, 2.5vw, 15px);
+      color: #94a3b8;
+    }
+
+    .header-right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .header-right .date {
+      font-size: clamp(11px, 2vw, 14px);
+      color: #64748b;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 3px 10px;
+      background: rgba(99,102,241,0.2);
+      border: 1px solid rgba(99,102,241,0.4);
+      border-radius: 20px;
+      font-size: 11px;
+      color: #818cf8;
+    }
+
+    /* ── Stat cards ── */
+    .stats-row {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stats-row.top { grid-template-columns: repeat(3, 1fr); }
+    .stats-row.bottom { grid-template-columns: repeat(4, 1fr); }
+
+    @media (max-width: 640px) {
+      .stats-row.top    { grid-template-columns: repeat(3, 1fr); }
+      .stats-row.bottom { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 400px) {
+      .stats-row.top    { grid-template-columns: repeat(1, 1fr); }
+      .stats-row.bottom { grid-template-columns: repeat(1, 1fr); }
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: clamp(14px, 3vw, 22px) clamp(12px, 2vw, 20px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .stat-card.c1::before { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+    .stat-card.c2::before { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
+    .stat-card.c3::before { background: linear-gradient(90deg, #34d399, #10b981); }
+    .stat-card.c4::before { background: linear-gradient(90deg, #fb923c, #f97316); }
+    .stat-card.c5::before { background: linear-gradient(90deg, #fcd34d, #f59e0b); }
+    .stat-card.c6::before { background: linear-gradient(90deg, #f472b6, #ec4899); }
+    .stat-card.c7::before { background: linear-gradient(90deg, #6ee7b7, #06b6d4); }
+
+    .stat-card .label {
+      font-size: clamp(10px, 2vw, 12px);
+      color: #64748b;
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-card .value {
+      font-size: clamp(24px, 5vw, 40px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-card.c1 .value { color: #60a5fa; }
+    .stat-card.c2 .value { color: #a78bfa; }
+    .stat-card.c3 .value { color: #34d399; }
+    .stat-card.c4 .value { color: #fb923c; }
+    .stat-card.c5 .value { color: #fcd34d; }
+    .stat-card.c6 .value { color: #f472b6; }
+    .stat-card.c7 .value { color: #6ee7b7; }
+
+    .stat-card .unit {
+      font-size: clamp(10px, 2vw, 13px);
+      color: #64748b;
+      margin-top: 6px;
+    }
+
+    .stat-card .sub {
+      font-size: 11px;
+      color: #10b981;
+      margin-top: 4px;
+    }
+
+    .analytics-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 9px;
+      color: #475569;
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 4px;
+      padding: 2px 5px;
+    }
+
+    /* ── Graphs ── */
+    .graphs {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .graphs { grid-template-columns: 1fr; }
+    }
+
+    .graph-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: clamp(16px, 3vw, 24px);
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .graph-title {
+      font-size: clamp(11px, 2vw, 13px);
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      height: 200px;
+    }
+
+    .chart-wrap canvas {
+      max-width: 100% !important;
+    }
+
+    /* Retention bars */
+    .retention-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .retention-row { display: flex; flex-direction: column; gap: 6px; }
+
+    .retention-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: clamp(11px, 2vw, 13px);
+      color: #94a3b8;
+    }
+
+    .retention-bar-bg {
+      height: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .retention-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #f472b6, #ec4899);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      font-size: 11px;
+      color: #1e3a5f;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>三川燃料店 YouTube レポート</h1>
+      <div class="channel">📺 乾太くん検証チャンネル(株)三川燃料店</div>
+    </div>
+    <div class="header-right">
+      <div class="date">2026年5月9日（土）</div>
+      <span class="badge">Analytics API 連携済み</span>
+    </div>
+  </div>
+
+  <!-- Top stats -->
+  <div class="stats-row top">
+    <div class="stat-card c1">
+      <div class="label">登録者数</div>
+      <div class="value">13</div>
+      <div class="unit">人</div>
+      <div class="sub">▲ +1 先週比</div>
+    </div>
+    <div class="stat-card c2">
+      <div class="label">総再生数</div>
+      <div class="value">27,749</div>
+      <div class="unit">回</div>
+    </div>
+    <div class="stat-card c3">
+      <div class="label">動画本数</div>
+      <div class="value">14</div>
+      <div class="unit">本</div>
+    </div>
+  </div>
+
+  <!-- Analytics stats -->
+  <div class="stats-row bottom">
+    <div class="stat-card c4">
+      <span class="analytics-badge">Analytics</span>
+      <div class="label">インプレッション数</div>
+      <div class="value">4,820</div>
+      <div class="unit">回 / 直近28日</div>
+    </div>
+    <div class="stat-card c5">
+      <span class="analytics-badge">Analytics</span>
+      <div class="label">クリック率 (CTR)</div>
+      <div class="value">5.2%</div>
+      <div class="unit">インプレ→再生</div>
+    </div>
+    <div class="stat-card c6">
+      <span class="analytics-badge">Analytics</span>
+      <div class="label">平均視聴維持率</div>
+      <div class="value">48%</div>
+      <div class="unit">平均視聴時間 3:12</div>
+    </div>
+    <div class="stat-card c7">
+      <span class="analytics-badge">Analytics</span>
+      <div class="label">リピーター率</div>
+      <div class="value">62%</div>
+      <div class="unit">同じ視聴者が複数回</div>
+    </div>
+  </div>
+
+  <!-- Graphs -->
+  <div class="graphs">
+    <div class="graph-card">
+      <div class="graph-title">📈 登録者数の推移</div>
+      <div class="chart-wrap">
+        <canvas id="subChart"></canvas>
+      </div>
+    </div>
+    <div class="graph-card">
+      <div class="graph-title">🎯 視聴維持率（動画別）</div>
+      <div class="retention-bars">
+        <div class="retention-row">
+          <div class="retention-label"><span>乾太くん設置レポート</span><span style="color:#f472b6;">61%</span></div>
+          <div class="retention-bar-bg"><div class="retention-bar-fill" style="width:61%;"></div></div>
+        </div>
+        <div class="retention-row">
+          <div class="retention-label"><span>ガス乾燥機比較</span><span style="color:#f472b6;">54%</span></div>
+          <div class="retention-bar-bg"><div class="retention-bar-fill" style="width:54%;"></div></div>
+        </div>
+        <div class="retention-row">
+          <div class="retention-label"><span>設置工事の流れ</span><span style="color:#f472b6;">48%</span></div>
+          <div class="retention-bar-bg"><div class="retention-bar-fill" style="width:48%;"></div></div>
+        </div>
+        <div class="retention-row">
+          <div class="retention-label"><span>ランニングコスト解説</span><span style="color:#f472b6;">39%</span></div>
+          <div class="retention-bar-bg"><div class="retention-bar-fill" style="width:39%;"></div></div>
+        </div>
+        <div class="retention-row">
+          <div class="retention-label"><span>よくある質問まとめ</span><span style="color:#f472b6;">33%</span></div>
+          <div class="retention-bar-bg"><div class="retention-bar-fill" style="width:33%;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">自動生成 by YouTube統計Bot</div>
+
+</div>
+
+<script>
+  const ctx = document.getElementById("subChart").getContext("2d");
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: ["05-03","05-04","05-05","05-06","05-07","05-08","05-09"],
+      datasets: [{
+        label: "登録者数",
+        data: [8, 9, 10, 11, 11, 12, 13],
+        borderColor: "#60a5fa",
+        backgroundColor: "rgba(96,165,250,0.1)",
+        borderWidth: 2.5,
+        pointBackgroundColor: "#60a5fa",
+        pointRadius: 4,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: 0 },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b", font: { size: 11 } } },
+        y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#64748b", font: { size: 11 } } }
+      }
+    }
+  });
+</script>
+</body>
+</html>
